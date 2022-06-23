@@ -1,0 +1,36 @@
+$backgrounds_url:(
+    1: 'https://images.unsplash.com/photo-1655839799605-7dae9640735a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=736&q=80',
+    2: 'https://images.unsplash.com/photo-1655937334599-debb7ae30072?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=688&q=80',
+    3: 'https://images.unsplash.com/photo-1655893524877-cd2b9df26908?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80',
+    4: 'https://images.unsplash.com/photo-1655905944266-fd5b222c19b5?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=686&q=80',
+    5: 'https://images.unsplash.com/photo-1655890938539-7257cdd5ea34?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80'
+);
+
+.cards{
+    display: flex;
+    width: 80vw;
+
+    &__item{
+        background-size: auto 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+
+        flex: 1;
+        height: 40vh;
+        margin: 10px;
+        cursor: pointer;
+        border-radius: 50px;
+        transition: flex .7s 
+                    cubic-bezier(0.47, 0, 0.745, 0.715);
+    
+        @each $key, $url in $backgrounds_url{
+            &:nth-child(#{$key}){
+                background-image: url($url);
+            }
+        }
+
+        &--active{
+            flex: 5;
+        }
+    }
+}
