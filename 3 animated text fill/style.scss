@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap');
+
+.motion{
+
+    &__title{
+        font-family: 'Oswald', sans-serif;
+        font-size: 4rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-align: center;
+
+        background: url(./animated-text-fill.png);
+        background-clip: text;
+
+        color: transparent;
+        animation: bg_motion 80s linear infinite;
+    }
+}
+
+@keyframes bg_motion{
+    0%{
+        background-position: 0% 50%;
+    }
+    100%{
+        background-position: 100% 50%;
+    }
+}
+
+
+
+
+
