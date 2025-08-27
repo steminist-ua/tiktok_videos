@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pretty Dice — 2 Players</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <h1>Pretty Dice — 2 Players</h1>
+      <div class="hint">Кидай кості | Переможе найбільша сума</div>
+    </header>
+
+    <section class="board" aria-live="polite">
+      <div class="player" id="p1">
+        <div class="name">Гравець 1</div>
+        <div class="dice-wrap">
+          <div class="die" data-die="p1a"></div>
+          <div class="die" data-die="p1b"></div>
+        </div>
+        <div class="result" id="r1">—</div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <div class="player" id="p2">
+        <div class="name">Гравець 2</div>
+        <div class="dice-wrap">
+          <div class="die" data-die="p2a"></div>
+          <div class="die" data-die="p2b"></div>
+        </div>
+        <div class="result" id="r2">—</div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <button class="btn primary" id="rollBtn">Roll 🎲</button>
+      <button class="btn" id="resetBtn">Скинути</button>
+    </div>
+
+    <div class="winner" id="winnerMsg">—</div>
+
+    <footer>
+      <p>Легка реалізація. Без збережень. Тільки гарні кубики ✨ STEMINIST UA</p>
+      <p><a href="https://github.com/steminist/steminist-ua" target="_blank">GitHub</a></p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+
+
