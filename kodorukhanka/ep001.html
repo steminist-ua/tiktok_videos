@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Скретч-картка для девів 🚀</title>
+  <style>
+    :root {
+      --card-w: min(92vw, 760px);
+      --card-h: min(120vw, 420px);
+      --radius: 18px;
+      --glass: rgba(255, 255, 255, 0.15);
+      --glass-strong: rgba(255, 255, 255, 0.25);
+      --text: #0a0a0a;
+    }
+
+    /* Фон сторінки — живий градієнт */
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      color: #111;
+      background:
+        radial-gradient(1200px 700px at 10% 10%, #ffec99 0%, transparent 60%),
+        radial-gradient(900px 900px at 90% 20%, #c0f 0%, transparent 60%),
+        radial-gradient(1000px 800px at 50% 90%, #00d1ff 0%, transparent 60%),
+        conic-gradient(from 0deg, #ffd8a8, #b2f2bb, #a5d8ff, #e599f7, #ffd8a8);
+      background-blend-mode: screen, screen, screen, normal;
+      animation: hue 16s linear infinite;
+    }
+
+    @keyframes hue {
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 900px;
+      padding: 24px;
+    }
+
+    .title {
+      margin: 0 0 18px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      text-align: center;
+      font-size: clamp(20px, 3.6vw, 34px);
+      color: #0c0c0c;
+      text-shadow: 0 1px 0 #fff8, 0 6px 24px #0002;
+    }
+
+    .scratch-card {
+      position: relative;
+      width: var(--card-w);
+      height: var(--card-h);
+      margin-inline: auto;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow:
+        0 20px 60px #00000030,
+        0 2px 6px #00000018,
+        inset 0 0 0 1px #ffffff30;
+      background: linear-gradient(135deg, #ffffffaa, #ffffff22);
+      backdrop-filter: blur(6px) saturate(1.1);
+    }
+
+    .message {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+      background:
+        radial-gradient(80% 60% at 50% 0%, #ffffffc0, transparent 70%),
+        repeating-conic-gradient(from 0deg, #ffffff08 0 15deg, transparent 15deg 30deg),
+        linear-gradient(135deg, #35ffe827, #ffd6ff27 60%, #fff4b427);
+    }
+
+    .wish {
+      font-weight: 900;
+      font-size: clamp(22px, 3.6vw, 36px);
+      margin: 0 0 10px;
+      color: #0a0a0a;
+      letter-spacing: .4px;
+      text-shadow:
+        0 1px 0 #fff,
+        0 10px 24px #0001,
+        0 0 40px #fff6;
+    }
+
+    .sub {
+      margin: 0;
+      font-size: clamp(14px, 2.2vw, 18px);
+      color: #222;
+      opacity: .9;
+    }
+
+    /* Полотно, яке стираємо */
+    canvas#cover {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      touch-action: none;
+      transition: opacity .6s ease;
+    }
+
+    canvas#cover.scratching {
+      cursor: grabbing;
+    }
+
+    canvas#cover.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Конфеті зверху, але не заважає курсору */
+    canvas#confetti {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .controls {
+      margin: 14px auto 0;
+      width: var(--card-w);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .hint {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--glass);
+      backdrop-filter: blur(6px);
+      border: 1px solid #ffffff55;
+    }
+
+    .progress {
+      font-feature-settings: "tnum" on, "lnum" on;
+      font-variant-numeric: tabular-nums;
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: var(--glass-strong);
+      border: 1px solid #ffffff66;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      border: 0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      background: linear-gradient(135deg, #111 0%, #333 100%);
+      color: #fff;
+      box-shadow: 0 8px 20px #00000030, inset 0 0 0 1px #ffffff22;
+      cursor: pointer;
+      transition: transform .08s ease, filter .2s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    button:active {
+      transform: translateY(1px) scale(.995);
+    }
+
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 14px;
+      color: #222;
+      opacity: .85;
+    }
+
+    footer a {
+      color: #0077cc;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1 class="title">Скретч-картка для розробників</h1>
+
+    <div class="scratch-card" id="card" role="img" aria-label="Сотри верхній шар, щоб побачити побажання">
+      <div class="message" aria-hidden="false">
+        <div>
+          <h2 class="wish">Нехай тести завжди зеленіють,<br>а релізи — без даунтайму! 🚀</h2>
+          <p class="sub">
+            PR-и мержаться з першого разу, девопси — з печивом, CI — блискавичний,
+            а кава ніколи не закінчується ☕.<br>
+            P.S. <i>rm -rf</i> — тільки в песочниці 😅
+          </p>
+        </div>
+      </div>
+
+      <canvas id="cover" aria-hidden="true"></canvas>
+      <canvas id="confetti" aria-hidden="true"></canvas>
+    </div>
+
+    <div class="controls">
+      <div class="left">
+        <button id="reset" type="button">Перезапустити скретч</button>
+        <span class="hint">Тягни мишею / пальцем, щоб стерти</span>
+      </div>
+      <span class="progress" id="progress">0% стерто</span>
+    </div>
+
+    <footer>
+      Зроблено з 💜 STEMINIST &mdash; <a href="https://github.com/steminist-ua" target="_blank">GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const cover = document.getElementById('cover');
+      const confetti = document.getElementById('confetti');
+      const progressEl = document.getElementById('progress');
+      const resetBtn = document.getElementById('reset');
+      const card = document.getElementById('card');
+
+      let ctx, w, h, dpr, eraser, drawing = false, completed = false;
+      let lastX = 0, lastY = 0;
+      let checkRAF = 0;
+
+      function fitCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        canvas.width = Math.round(rect.width * ratio);
+        canvas.height = Math.round(rect.height * ratio);
+        canvas.getContext('2d').setTransform(ratio, 0, 0, ratio, 0, 0);
+        return { rect, ratio };
+      }
+
+      function drawCover() {
+        const g = ctx.createLinearGradient(0, 0, w, 0);
+        g.addColorStop(0, '#111');
+        g.addColorStop(0.5, '#262626');
+        g.addColorStop(1, '#111');
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.clearRect(0, 0, w, h);
+
+        // База
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+
+        // Яскраві смуги
+        const stripes = ctx.createLinearGradient(0, 0, w, h);
+        stripes.addColorStop(0, 'rgba(255,0,184,0.55)');
+        stripes.addColorStop(1, 'rgba(0,182,255,0.55)');
+        ctx.fillStyle = stripes;
+        ctx.globalAlpha = 0.8;
+        const step = 42;
+        ctx.save();
+        ctx.translate(-h, 0);
+        ctx.rotate(-Math.PI / 6);
+        for (let x = -w; x < w * 2; x += step) {
+          ctx.fillRect(x, 0, step / 2, h * 2);
+        }
+        ctx.restore();
+
+        // Блиск
+        const glow = ctx.createRadialGradient(w * 0.2, h * 0.2, 10, w * 0.2, h * 0.2, Math.max(w, h));
+        glow.addColorStop(0, 'rgba(255,255,255,0.18)');
+        glow.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, w, h);
+
+        // Текст-підказка
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 28px system-ui, -apple-system, Segoe UI, Roboto';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(0,0,0,.35)';
+        ctx.shadowBlur = 12;
+        ctx.fillText('Зітри мене ✨', w / 2, h / 2);
+        ctx.restore();
+      }
+
+      function setUp() {
+        const fit = fitCanvas(cover);
+        dpr = fit.ratio;
+        w = Math.round(fit.rect.width);
+        h = Math.round(fit.rect.height);
+        ctx = cover.getContext('2d', { willReadFrequently: true });
+        eraser = Math.max(16, Math.min(w, h) * 0.07); // радіус ластика
+        drawCover();
+        cover.classList.remove('done');
+        completed = false;
+        updateProgress(0);
+        stopConfetti();
+      }
+
+      function scratchAt(clientX, clientY) {
+        const rect = cover.getBoundingClientRect();
+        const x = (clientX - rect.left);
+        const y = (clientY - rect.top);
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = eraser * 2;
+
+        // Лінія між попередньою точкою та новою — для “суцільності”
+        ctx.moveTo(lastX || x, lastY || y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        // Коло в точці — щоб не лишалось гострих країв
+        ctx.beginPath();
+        ctx.arc(x, y, eraser, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        lastX = x; lastY = y;
+
+        // Легка “ледь-ледь” перевірка відсотка з throttling
+        if (!checkRAF) {
+          checkRAF = requestAnimationFrame(() => { checkRAF = 0; checkProgress(); });
+        }
+      }
+
+      function pointerDown(e) {
+        e.preventDefault();
+        drawing = true;
+        cover.classList.add('scratching');
+        const p = getPoint(e);
+        lastX = p.x; lastY = p.y;
+        scratchAt(p.clientX, p.clientY);
+      }
+
+      function pointerMove(e) {
+        if (!drawing) return;
+        const p = getPoint(e);
+        scratchAt(p.clientX, p.clientY);
+      }
+
+      function pointerUp() {
+        drawing = false;
+        cover.classList.remove('scratching');
+        lastX = 0; lastY = 0;
+        checkProgress();
+      }
+
+      function getPoint(e) {
+        if (e.touches && e.touches[0]) {
+          const t = e.touches[0];
+          return { x: t.clientX, y: t.clientY, clientX: t.clientX, clientY: t.clientY };
+        }
+        return { x: e.clientX, y: e.clientY, clientX: e.clientX, clientY: e.clientY };
+      }
+
+      function updateProgress(pct) {
+        progressEl.textContent = `${Math.min(100, Math.max(0, Math.round(pct)))}% стерто`;
+      }
+
+      function checkProgress() {
+        if (completed) return;
+        // Сэмплінг альфи — не всі пікселі, щоб було швидко
+        const sampleStep = 8; // чим більше — тим легше
+        const img = ctx.getImageData(0, 0, cover.width, cover.height);
+        const data = img.data;
+        let clear = 0, total = 0;
+        for (let i = 3; i < data.length; i += 4 * sampleStep) {
+          total++;
+          if (data[i] < 10) clear++;
+        }
+        const pct = (clear / total) * 100;
+        updateProgress(pct);
+
+        if (pct >= 80) { // поріг “виграшу”
+          completed = true;
+          cover.classList.add('done');
+          celebrate();
+        }
+      }
+
+      // --- Конфеті ---
+      const conf = {
+        ctx: confetti.getContext('2d'),
+        width: 0, height: 0,
+        parts: [], raf: 0, running: false
+      };
+
+      function fitConfetti() {
+        const rect = confetti.getBoundingClientRect();
+        const ratio = Math.max(window.devicePixelRatio || 1, 1);
+        confetti.width = Math.round(rect.width * ratio);
+        confetti.height = Math.round(rect.height * ratio);
+        conf.ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        conf.width = rect.width;
+        conf.height = rect.height;
+      }
+
+      function celebrate() {
+        fitConfetti();
+        spawnConfetti(200);
+        conf.running = true;
+        tick();
+        // авто-стоп через 5с
+        setTimeout(stopConfetti, 5000);
+      }
+
+      function stopConfetti() {
+        conf.running = false;
+        if (conf.raf) { cancelAnimationFrame(conf.raf); conf.raf = 0; }
+        conf.parts.length = 0;
+        conf.ctx.clearRect(0, 0, conf.width, conf.height);
+      }
+
+      function spawnConfetti(n) {
+        for (let i = 0; i < n; i++) {
+          conf.parts.push({
+            x: Math.random() * conf.width,
+            y: -10 - Math.random() * conf.height * 0.4,
+            vx: -2 + Math.random() * 4,
+            vy: 2 + Math.random() * 3,
+            size: 6 + Math.random() * 10,
+            rot: Math.random() * Math.PI * 2,
+            vr: -0.2 + Math.random() * 0.4,
+            life: 1,  // 1..0
+            shape: Math.random() < 0.6 ? 'rect' : 'circle'
+          });
+        }
+      }
+
+      function tick() {
+        conf.raf = requestAnimationFrame(tick);
+        const c = conf.ctx;
+        c.clearRect(0, 0, conf.width, conf.height);
+
+        // Малюємо без фіксованих кольорів: беремо HSL по колу від x
+        for (const p of conf.parts) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.03;           // гравітація
+          p.rot += p.vr;
+          p.life -= 0.004;        // згасання
+
+          // за межами — перероджуємо зверху
+          if (p.y > conf.height + 20 || p.life <= 0) {
+            p.x = Math.random() * conf.width;
+            p.y = -10;
+            p.vx = -2 + Math.random() * 4;
+            p.vy = 2 + Math.random() * 3;
+            p.size = 6 + Math.random() * 10;
+            p.rot = Math.random() * Math.PI * 2;
+            p.vr = -0.2 + Math.random() * 0.4;
+            p.life = 1;
+          }
+
+          c.save();
+          c.translate(p.x, p.y);
+          c.rotate(p.rot);
+          // HSL без конкретних значень кольорів: колір від позиції
+          const hue = (p.x / conf.width) * 360;
+          c.fillStyle = `hsla(${hue}, 90%, 60%, ${Math.max(0.4, p.life)})`;
+          if (p.shape === 'rect') {
+            c.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          } else {
+            c.beginPath();
+            c.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            c.fill();
+          }
+          c.restore();
+        }
+
+        if (!conf.running) {
+          cancelAnimationFrame(conf.raf);
+          conf.raf = 0;
+        }
+      }
+
+      // --- Події ---
+      cover.addEventListener('pointerdown', pointerDown, { passive: false });
+      window.addEventListener('pointermove', pointerMove, { passive: false });
+      window.addEventListener('pointerup', pointerUp);
+      window.addEventListener('pointercancel', pointerUp);
+      window.addEventListener('resize', () => {
+        // збереження прогресу при ресайзі не гарантуємо — перегенеруємо шар
+        setUp();
+      });
+
+      resetBtn.addEventListener('click', setUp);
+
+      // Перший запуск
+      setUp();
+    })();
+  </script>
+</body>
+
+</html>
