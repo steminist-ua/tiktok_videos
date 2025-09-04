@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ліхтарик мишкою — Кодоруханка</title>
+  <meta name="description" content="Ефект затемнення екрану з «вікном світла», що слідує за курсором або дотиком. Навчання mousemove та CSS-масок.">
+  <style>
+    :root{
+      --x: 50vw;              /* позиція світла по X */
+      --y: 50vh;              /* позиція світла по Y */
+      --r: clamp(80px, 18vmin, 220px); /* радіус світла */
+      --soft: calc(var(--r) * .45);    /* м’яка кромка */
+      --bg: #0b1020;
+      --muted: #c9d4f0;
+      --accent-from: #22D3EE; /* cyan */
+      --accent-to: #F472B6;   /* pink */
+      --glass: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.22);
+      --shadow: 0 12px 60px rgba(0,0,0,.45);
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      color:#eaf2ff;
+      font: 16px/1.55 Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      background:
+        radial-gradient(1200px 800px at 18% 10%, rgba(124,58,237,.22), transparent 60%),
+        radial-gradient(1000px 700px at 82% 24%, rgba(6,182,212,.22), transparent 60%),
+        radial-gradient(900px 900px at 50% 90%, rgba(245,158,11,.18), transparent 60%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* Декоративний фон-сцена: сітка + точки */
+    .scene{
+      position: fixed; inset:0; z-index:0;
+      background:
+        radial-gradient(1000px 600px at 50% 5%, rgba(255,255,255,.06), transparent 60%),
+        linear-gradient(transparent 0 49%, rgba(255,255,255,.06) 50%, transparent 51%) 0 0/ 40px 40px,
+        linear-gradient(90deg, transparent 0 49%, rgba(255,255,255,.06) 50%, transparent 51%) 0 0/ 40px 40px;
+      pointer-events:none;
+    }
+    .scene::after{
+      content:"";
+      position:absolute; inset:0;
+      background:
+        radial-gradient(6px 6px at 20% 30%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(6px 6px at 80% 60%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(5px 5px at 45% 75%, rgba(255,255,255,.2), transparent 60%);
+      mix-blend-mode: screen;
+      opacity:.6;
+    }
+
+    /* Карточка з описом */
+    .wrap{ position:relative; z-index:1; min-height:100svh; display:grid; place-items:center; padding: clamp(16px, 4vw, 40px); }
+    .card{
+      width:min(920px, 92vw);
+      border:1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.08));
+      backdrop-filter: blur(16px) saturate(120%);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3.6vw, 36px);
+      position: relative;
+    }
+    .brand{ display:flex; align-items:center; gap:.55rem; color: var(--muted); user-select:none; }
+    .brand .dot{ width:10px; height:10px; border-radius:999px; background: linear-gradient(45deg, var(--accent-from), var(--accent-to)); box-shadow: 0 0 18px rgba(34,211,238,.55), 0 0 28px rgba(244,114,182,.45); }
+    h1{ margin:10px 0 6px; font-size: clamp(26px, 6vw, 58px); line-height:1.02; font-weight:800;
+        background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+        -webkit-background-clip:text; background-clip:text; color: transparent; }
+    .sub{ margin:0 0 16px; color: var(--muted); font-size: clamp(14px, 2.2vw, 18px); }
+
+    .controls{ display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; }
+    .btn{
+      appearance:none; border:none; cursor:pointer; padding:.7rem 1rem; border-radius:14px; font-weight:700; color:#081020;
+      background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+      box-shadow: 0 0 22px rgba(34,211,238,.55), 0 0 42px rgba(244,114,182,.45);
+      transition: transform .12s ease;
+    }
+    .btn:active{ transform: translateY(1px) scale(.98); }
+    .slider{ display:flex; align-items:center; gap:.6rem; color: var(--muted); }
+    .slider input[type=range]{ width:200px; accent-color:#fff; }
+
+    footer{
+      margin-top: 14px; text-align:center; color: var(--muted); font-size:.95rem;
+    }
+    footer a{ color: var(--accent-from); font-weight:700; text-decoration:none; }
+    footer a:hover{ text-decoration: underline; }
+
+    /* Темна вуаль з «діркою світла» — через CSS mask */
+    .veil{
+      position: fixed; inset:0; z-index:2;
+      background: rgba(0,0,0,.88);
+      pointer-events:none; /* щоб не заважати взаємодії з елементами */
+      /* м’яка кромка й виріз по координатах var(--x/--y) */
+      -webkit-mask: radial-gradient(circle at var(--x) var(--y),
+                     transparent 0 calc(var(--r) - var(--soft)),
+                     rgba(0,0,0,.35) calc(var(--r) - var(--soft) + 2px),
+                     #000 calc(var(--r) + var(--soft)));
+              mask: radial-gradient(circle at var(--x) var(--y),
+                     transparent 0 calc(var(--r) - var(--soft)),
+                     rgba(0,0,0,.35) calc(var(--r) - var(--soft) + 2px),
+                     #000 calc(var(--r) + var(--soft)));
+      transition: opacity .25s ease;
+    }
+
+    /* Кнопка-підказка для мобільних: торкнись, щоб активувати */
+    .tap-hint{
+      position: fixed; inset: 0; z-index:3; display:grid; place-items:center;
+      color:#0b1020; text-align:center; font-weight:800; letter-spacing:.2px;
+      pointer-events:none;
+      opacity:.0; transition: opacity .25s ease;
+    }
+    .tap-hint.show{
+      pointer-events:none; opacity: .9;
+    }
+    .bubble{
+      background:#fff; padding:12px 16px; border-radius:999px; box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    }
+
+    /* Менше руху — не миготіти підказкою */
+    @media (prefers-reduced-motion: reduce){
+      .tap-hint{ transition:none; }
+      .veil{ transition:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-hidden="true"></div>
+
+  <div class="wrap" role="main">
+    <section class="card" aria-labelledby="h1">
+      <div class="brand"><span class="dot" aria-hidden="true"></span><span>Кодоруханка</span></div>
+      <h1 id="h1">Ліхтарик мишкою 🖱️🔦</h1>
+      <p class="sub">Екран затемнений, а навколо курсора є «світло». Граємося з <code>mousemove</code> і <strong>CSS‑масками</strong>. Ефект «пошуку скарбу» чи «нічної гри».</p>
+
+      <div class="controls" aria-label="Налаштування ліхтарика">
+        <button id="toggle" class="btn" type="button">🔦 Увімкнено</button>
+        <div class="slider">
+          <label for="radius">Радіус</label>
+          <input id="radius" type="range" min="60" max="360" step="10" value="180" />
+          <output id="radOut">180</output> px
+        </div>
+      </div>
+
+      <footer>
+        Зроблено з 💜 STEMINIST &mdash; <a href="https://github.com/steminist-ua" target="_blank" rel="noopener">GitHub</a>
+      </footer>
+    </section>
+  </div>
+
+  <!-- Вуаль для ефекту ліхтарика -->
+  <div id="veil" class="veil" aria-hidden="true"></div>
+  <div id="tapHint" class="tap-hint"><div class="bubble">Торкнись і рухай пальцем, щоб світити ✨</div></div>
+
+  <script>
+    // ===== Spotlight engine =====
+    const root = document.documentElement;
+    const veil = document.getElementById('veil');
+    const hint = document.getElementById('tapHint');
+    const radius = document.getElementById('radius');
+    const radOut = document.getElementById('radOut');
+    const toggle = document.getElementById('toggle');
+
+    let enabled = true;
+    let lastX = window.innerWidth/2, lastY = window.innerHeight/2;
+
+    function setPos(x, y){
+      lastX = x; lastY = y;
+      root.style.setProperty('--x', x + 'px');
+      root.style.setProperty('--y', y + 'px');
+    }
+    setPos(lastX, lastY);
+
+    function onMove(e){
+      if(!enabled) return;
+      if(e.touches && e.touches[0]){
+        const t = e.touches[0];
+        setPos(t.clientX, t.clientY);
+      } else {
+        setPos(e.clientX, e.clientY);
+      }
+    }
+
+    // Радіус
+    function updateRadius(val){
+      const r = Number(val);
+      root.style.setProperty('--r', r + 'px');
+      radOut.textContent = r;
+    }
+    updateRadius(radius.value);
+    radius.addEventListener('input', (e)=> updateRadius(e.target.value));
+
+    // Увімкнути/вимкнути
+    toggle.addEventListener('click', () => {
+      enabled = !enabled;
+      toggle.textContent = enabled ? '🔦 Увімкнено' : '🔕 Вимкнено';
+      veil.style.opacity = enabled ? '1' : '0';
+    });
+
+    // Слухачі для миші/тачу
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchstart', (e)=>{ onMove(e); hint.classList.remove('show'); }, {passive:true});
+    window.addEventListener('touchmove', onMove, {passive:true});
+
+    // Показати підказку на мобільних при старті
+    if (matchMedia('(hover: none)').matches) {
+      hint.classList.add('show');
+      setTimeout(()=> hint.classList.remove('show'), 2500);
+    }
+
+    // При ресайзі втримуємо світло всередині екрана
+    window.addEventListener('resize', ()=>{
+      const x = Math.min(Math.max(0, lastX), window.innerWidth);
+      const y = Math.min(Math.max(0, lastY), window.innerHeight);
+      setPos(x, y);
+    });
+  </script>
+</body>
+</html>
